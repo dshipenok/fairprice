@@ -16,7 +16,7 @@ type MockRandomStream struct {
 // NewMockRandomStream constructor
 func NewMockRandomStream() *MockRandomStream {
 	return &MockRandomStream{
-		priceCh: make(chan TickerPrice),
+		priceCh: make(chan TickerPrice, 1),
 		errCh:   make(chan error),
 	}
 }

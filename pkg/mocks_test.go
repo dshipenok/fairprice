@@ -6,7 +6,7 @@ import (
 )
 
 func valChannels(vals ...interface{}) (chan TickerPrice, chan error) {
-	priceCh := make(chan TickerPrice)
+	priceCh := make(chan TickerPrice, 1)
 	errCh := make(chan error)
 	go func() {
 		for _, val := range vals {
@@ -19,6 +19,8 @@ func valChannels(vals ...interface{}) (chan TickerPrice, chan error) {
 				errCh <- errors.New(typed)
 			case time.Duration:
 				<-time.After(typed)
+			case chan struct{}:
+				<-typed
 			}
 		}
 	}()

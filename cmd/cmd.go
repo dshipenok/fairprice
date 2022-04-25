@@ -36,7 +36,14 @@ func main() {
 		<-interrupt
 		cancel()
 	}()
-	p.Start(ctx, output, preiod, outputValue)
+	outputCh := make(chan pkg.TickerPrice, 1)
+	defer close(outputCh)
+	go func() {
+		for p := range outputCh {
+			outputValue(p.Price)
+		}
+	}()
+	p.Start(ctx, output, preiod, outputCh)
 }
 
 func outputValue(value string) {

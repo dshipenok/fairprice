@@ -11,13 +11,13 @@ func NewMultiplexor() *Multiplexor {
 
 func (m *Multiplexor) Subscribe(apis []IPriceStreamSubscriber) chan TickerPrice { // TODO: not sure we have to return channel here
 	if len(apis) == 0 {
-		result := make(chan TickerPrice)
+		result := make(chan TickerPrice, 1)
 		close(result)
 		return result
 	}
 	wg := &sync.WaitGroup{}
 	wg.Add(len(apis))
-	output := make(chan TickerPrice)
+	output := make(chan TickerPrice, 1)
 	for _, api := range apis {
 		priceCh, errCh := api.SubscribePriceStream(BTCUSDTicker)
 		// goroutine per channel, thanks it's lightweight

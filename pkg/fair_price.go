@@ -5,8 +5,6 @@ import (
 	"time"
 )
 
-type OutputFunc func(price string)
-
 type IFairPriceCollector interface {
 	Collect(price string, t time.Time) error
 	GetFairPriceAndReset() string
@@ -31,7 +29,7 @@ func (p *FairPrice) Start(
 	ctx context.Context,
 	stream <-chan TickerPrice,
 	d time.Duration,
-	output OutputFunc,
+	output chan<- TickerPrice,
 ) {
 	ticker := time.NewTicker(d)
 	defer ticker.Stop()
@@ -54,7 +52,12 @@ func (p *FairPrice) Start(
 			_ = p.collector.Collect(price.Price, price.Time) // it's safe not to process an error, but it could be logged if required
 		case <-ticker.C:
 			fairPrice := p.collector.GetFairPriceAndReset()
-			output(fairPrice)
+			select {
+			case output <- TickerPrice{Price: fairPrice, Time: p.timeNow()}:
+			default:
+				// non-blocking operation
+			}
+			// output <- TickerPrice{Price: fairPrice, Time: p.timeNow()}
 			startedTime = p.timeNow()
 		}
 	}
